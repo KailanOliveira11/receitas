@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receitas Fitness Lucrativas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Bege Suave e Verde Fitness (bg-amber-50, text-stone-800, accent bg-teal-600) --><!-- Application Structure Plan: Foi escolhida uma estrutura de SPA com navegação por abas ('Início', 'Explorar Receitas', 'Dicas de Venda'). Esta arquitetura é superior a uma rolagem linear (como o e-book original) porque permite ao usuário ir diretamente à informação que procura. A seção 'Explorar' é o núcleo, usando um grid de cards, filtros (por tags) e busca de texto (via JS) para facilitar a descoberta. Um clique no card exibe uma visão de 'detalhe' que substitui o grid, focando o usuário na tarefa (ler a receita), com um botão 'Voltar' claro para retomar a exploração. Esta estrutura baseada em tarefas (Explorar -> Selecionar -> Ler -> Voltar) é ideal para um catálogo de receitas. --><!-- Visualization & Content Choices: 1. (Report Info) Sumário/Introdução -> (Goal) Informar/Contextualizar -> (Viz/Method) Abas de Navegação ('Início', 'Dicas') com texto HTML formatado. (Interaction) JS para mostrar/ocultar o conteúdo da aba selecionada. (Justification) Separa o conteúdo de apoio das receitas principais. 2. (Report Info) 20 Receitas -> (Goal) Organizar/Comparar/Informar -> (Viz/Method) Grid de Cards (HTML/Tailwind) e Visão de Detalhe (HTML). (Interaction) Filtros por tags (JS), Busca por texto (JS), Clique no Card (JS) para popular e alternar para a visão de detalhe. (Justification) Permite ao usuário encontrar rapidamente uma receita específica entre as 20 opções. 3. (Report Info) Categorias de Receitas (Inferido) -> (Goal) Organizar/Informar (Visão Geral) -> (Viz/Method) Gráfico de Donut (Chart.js/Canvas) mostrando a distribuição por ingrediente principal (Chocolate, Frutas, Castanhas, Outros). (Interaction) Tooltip ao passar o mouse. (Justification) Cumpre o requisito da biblioteca e fornece uma visão geral visual do catálogo de receitas, o que faltava no relatório original. 4. (Report Info) Dicas de Venda -> (Goal) Informar -> (Viz/Method) Lista HTML (aba 'Dicas de Venda'). (Justification) Agrupa as dicas de negócios de forma acessível. --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            border-bottom-color: #0d9488;
+            color: #0d9488;
+            font-weight: 600;
+        }
+        .recipe-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'beige': {
+                            50: '#FAF7F2',
+                            100: '#F5EFE6',
+                        },
+                        'verde-fitness': {
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                        },
+                        'marrom-claro': {
+                            700: '#44403c',
+                            800: '#292524',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-beige-50 text-marrom-claro-700 min-h-screen">
+
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-verde-fitness-600 mb-2">🌿 Receitas Fitness Lucrativas</h1>
+            <p class="text-lg text-marrom-claro-700">Explore sobremesas saudáveis para vender e lucrar.</p>
+        </header>
+
+        <nav class="mb-8">
+            <div class="border-b border-gray-300">
+                <ul class="flex flex-wrap -mb-px justify-center text-lg">
+                    <li>
+                        <button class="tab-button inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="inicio">
+                            🍰 Início
+                        </button>
+                    </li>
+                    <li>
+                        <button class="tab-button inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="receitas">
+                            📖 Explorar Receitas
+                        </button>
+                    </li>
+                    <li>
+                        <button class="tab-button inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="dicas">
+                            📈 Dicas de Venda
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main id="main-content">
+            
+            <section id="inicio-content" class="tab-content bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-semibold text-verde-fitness-600 mb-4">Oportunidade Doce e Saudável</h2>
+                <div class="space-y-4 text-base md:text-lg leading-relaxed">
+                    <p>Seja bem-vindo(a) ao seu guia completo para transformar o amor por doces e um estilo de vida saudável em uma fonte de renda lucrativa! O mercado fitness está em constante crescimento, e a demanda por sobremesas que unem sabor e saúde é enorme.</p>
+                    <p>Neste aplicativo, você encontrará **50 receitas** de sobremesas fitness perfeitamente elaboradas para venda. São opções com baixo teor de açúcar, ricas em fibras e proteínas, que encantam o paladar e conquistam a clientela que busca uma alimentação equilibrada.</p>
+                    <p class="font-semibold">Prepare-se para lucrar em casa, oferecendo produtos de qualidade que se destacam no mercado!</p>
+                </div>
+            </section>
+            
+            <section id="receitas-content" class="tab-content hidden">
+                <div id="recipe-explorer">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-semibold text-verde-fitness-600 mb-4">Explore Nossas 50 Receitas</h2>
+                        <p class="text-lg max-w-3xl mx-auto">
+                            Navegue por todas as receitas, veja um resumo visual dos nossos tipos de sobremesa, ou use a busca e os filtros para encontrar exatamente o que você procura.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg mb-8">
+                        <h3 class="text-2xl font-semibold text-center text-marrom-claro-800 mb-4">Visão Geral do Catálogo</h3>
+                        <p class="text-center text-marrom-claro-700 mb-4">Veja a distribuição das nossas receitas por ingrediente principal.</p>
+                        <div class="chart-container relative w-full max-w-lg mx-auto h-72 md:h-80">
+                            <canvas id="recipe-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-marrom-claro-800 mb-6">Encontre sua Receita</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="md:col-span-3">
+                                <input type="text" id="search-input" placeholder="Buscar por nome ou ingrediente (ex: 'chocolate', 'banana')..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verde-fitness-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-8 justify-center">
+                            <button class="filter-btn active-filter bg-verde-fitness-600 text-white px-4 py-2 rounded-full" data-tag="todos">Todos</button>
+                            <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-tag="proteico">Proteico</button>
+                            <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-tag="low-carb">Low Carb</button>
+                            <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-tag="sem-gluten">Sem Glúten</button>
+                            <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-tag="chocolate">Chocolate</button>
+                            <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-tag="frutas">Frutas</button>
+                        </div>
+                        
+                        <div id="recipe-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="recipe-detail" class="hidden">
+                </div>
+
+            </section>
+            
+            <section id="dicas-content" class="tab-content hidden bg-white p-6 md:p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-semibold text-verde-fitness-600 mb-6">📈 Dicas de Venda e Lucro</h2>
+                <p class="text-lg mb-6">Vender suas sobremesas é mais do que apenas cozinhar. Aqui estão algumas dicas cruciais para transformar seu talento em um negócio lucrativo e profissional.</p>
+                <ul class="space-y-6">
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-4 mt-1">📦</span>
+                        <div>
+                            <h3 class="text-xl font-semibold text-marrom-claro-800">Porcionamento e Embalagem</h3>
+                            <p class="text-marrom-claro-700">Utilize potes e embalagens transparentes e de boa qualidade. Um bom visual é metade da venda. Pese as porções para garantir a padronização.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-4 mt-1">🏷️</span>
+                        <div>
+                            <h3 class="text-xl font-semibold text-marrom-claro-800">Informação Nutricional</h3>
+                            <p class="text-marrom-claro-700">Destaque os benefícios de cada sobremesa (ex: "Rica em Proteína", "Zero Açúcar", "Low Carb"). Isso agrega valor e atrai o público fitness.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-4 mt-1">❄️</span>
+                        <div>
+                            <h3 class="text-xl font-semibold text-marrom-claro-800">Armazenamento e Validade</h3>
+                            <p class="text-marrom-claro-700">Sempre indique a forma de armazenamento ideal (geladeira ou freezer) e a validade de cada produto. Segurança alimentar é fundamental.</p>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+            
+        </main>
+
+        <footer class="text-center mt-12 text-marrom-claro-700">
+            <p>Desenvolvido por KLN COMPANY</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const recipeData = [
+            {
+                id: 1,
+                title: "Mousse de Chocolate Proteico",
+                emoji: "🍫",
+                tags: ["proteico", "low-carb", "chocolate"],
+                ingredients: [
+                    { item: "Abacate maduro (pequeno)", qty: "1 unidade" },
+                    { item: "Cacau em pó 100%", qty: "3 colheres de sopa" },
+                    { item: "Whey Protein sabor chocolate", qty: "2 scoops" },
+                    { item: "Leite vegetal (coco ou amêndoa)", qty: "50 ml" },
+                    { item: "Adoçante natural (xilitol/eritritol)", qty: "A gosto" },
+                    { item: "Essência de baunilha", qty: "1 colher de chá" },
+                    { item: "Frutas vermelhas (Opcional)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata todos os ingredientes da mousse em um liquidificador ou processador até obter um creme liso e homogêneo. Se necessário, adicione mais leite vegetal, aos poucos, para atingir a consistência desejada.",
+                    "Distribua o creme em potes individuais para venda.",
+                    "Leve à geladeira por, no mínimo, 2 horas para firmar.",
+                    "Decore com frutas vermelhas antes de servir ou fechar para entrega."
+                ]
+            },
+            {
+                id: 2,
+                title: "Brownie Fit com Batata Doce",
+                emoji: "🍠",
+                tags: ["chocolate"],
+                ingredients: [
+                    { item: "Batata doce cozida e amassada", qty: "1 xícara" },
+                    { item: "Farinha de aveia", qty: "1/2 xícara" },
+                    { item: "Ovos", qty: "2 unidades" },
+                    { item: "Cacau em pó 100%", qty: "1/2 xícara" },
+                    { item: "Óleo de coco derretido", qty: "1/4 xícara" },
+                    { item: "Adoçante natural (eritritol)", qty: "1/2 xícara" },
+                    { item: "Fermento em pó químico", qty: "1 colher de chá" },
+                    { item: "Chocolate 70% picado (sem açúcar)", qty: "50g" }
+                ],
+                prep: [
+                    "Em um recipiente, misture a batata doce amassada, os ovos, o óleo de coco e o adoçante até ficar homogêneo.",
+                    "Acrescente a farinha de aveia e o cacau em pó, misturando bem.",
+                    "Adicione o fermento e o chocolate picado, incorporando delicadamente.",
+                    "Despeje a massa em uma forma pequena forrada com papel manteiga.",
+                    "Asse em forno pré-aquecido a 180°C por cerca de 20 a 25 minutos. O centro deve estar levemente úmido.",
+                    "Deixe esfriar completamente antes de cortar em porções para venda."
+                ]
+            },
+            {
+                id: 3,
+                title: "Torta de Limão Low Carb no Pote",
+                emoji: "🍋",
+                tags: ["low-carb", "sem-gluten", "frutas"],
+                ingredients: [
+                    { item: "Farinha de amêndoas", qty: "1 xícara" },
+                    { item: "Manteiga ghee ou óleo de coco", qty: "3 colheres de sopa" },
+                    { item: "Adoçante natural (base)", qty: "2 colheres de sopa" },
+                    { item: "Creme de leite (lata, sem soro)", qty: "1 lata" },
+                    { item: "Suco de limão (puro)", qty: "1/2 xícara" },
+                    { item: "Raspas de limão", qty: "A gosto" },
+                    { item: "Adoçante natural (recheio)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Base: Misture a farinha de amêndoas, a manteiga/óleo de coco e o adoçante até formar uma farofa úmida. Distribua uma camada no fundo dos potes.",
+                    "Recheio: Bata o creme de leite, o suco de limão e o adoçante no liquidificador até obter um creme espesso.",
+                    "Despeje o recheio sobre a base nos potes.",
+                    "Leve à geladeira por, no mínimo, 4 horas para firmar.",
+                    "Decore com raspas de limão antes de fechar os potes."
+                ]
+            },
+            {
+                id: 4,
+                title: "Cheesecake de Frutas Vermelhas Fit",
+                emoji: "🍓",
+                tags: ["proteico", "frutas"],
+                ingredients: [
+                    { item: "Biscoito de Arroz ou aveia triturada", qty: "1/2 xícara" },
+                    { item: "Pasta de amendoim integral", qty: "2 colheres de sopa" },
+                    { item: "Cream cheese light/cottage", qty: "150g" },
+                    { item: "Iogurte natural desnatado", qty: "50g" },
+                    { item: "Whey Protein sabor baunilha", qty: "1 scoop" },
+                    { item: "Adoçante natural (recheio)", qty: "A gosto" },
+                    { item: "Frutas vermelhas congeladas", qty: "1 xícara" },
+                    { item: "Água (geleia)", qty: "1/4 xícara" },
+                    { item: "Adoçante natural (geleia)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Base: Misture os ingredientes da base e forre o fundo de pequenas formas (ou potes). Leve ao freezer por 10 minutos.",
+                    "Recheio: Misture o cream cheese, iogurte, whey e adoçante até obter um creme liso e sem grumos. Despeje sobre a base e leve à geladeira.",
+                    "Geleia: Leve as frutas, água e adoçante ao fogo baixo, mexendo até as frutas desmancharem e a geleia engrossar. Deixe esfriar.",
+                    "Cubra os cheesecakes com a geleia fria. Mantenha refrigerado."
+                ]
+            },
+            {
+                id: 5,
+                title: "Brigadeiro de Whey Protein",
+                emoji: "💪",
+                tags: ["proteico", "low-carb", "chocolate"],
+                ingredients: [
+                    { item: "Leite em pó desnatado", qty: "1/2 xícara" },
+                    { item: "Whey Protein sabor chocolate", qty: "1 scoop" },
+                    { item: "Cacau em pó 100%", qty: "2 colheres de sopa" },
+                    { item: "Água morna", qty: "Cerca de 1/4 xícara" },
+                    { item: "Adoçante natural", qty: "A gosto" },
+                    { item: "Granulado fit ou coco ralado seco", qty: "A gosto" }
+                ],
+                prep: [
+                    "Em uma tigela, misture o leite em pó, o whey protein e o cacau.",
+                    "Adicione a água morna aos poucos e o adoçante, misturando até obter a consistência de brigadeiro de colher (ponto de enrolar).",
+                    "Se a massa estiver muito mole, adicione um pouco mais de leite em pó. Se estiver muito seca, um pouco mais de água.",
+                    "Leve à geladeira por 30 minutos.",
+                    "Enrole em bolinhas e passe no granulado fit ou coco ralado. Coloque em forminhas de papel."
+                ]
+            },
+            {
+                id: 6,
+                title: "Bolo de Cenoura Integral com Cobertura Fit",
+                emoji: "🥕",
+                tags: ["outros"],
+                ingredients: [
+                    { item: "Cenouras cruas picadas", qty: "2 unidades médias" },
+                    { item: "Ovos", qty: "3 unidades" },
+                    { item: "Óleo de coco", qty: "1/2 xícara" },
+                    { item: "Farinha de trigo integral", qty: "1 xícara" },
+                    { item: "Farinha de aveia", qty: "1/2 xícara" },
+                    { item: "Adoçante culinário", qty: "1/2 xícara" },
+                    { item: "Fermento em pó", qty: "1 colher de sopa" },
+                    { item: "Cobertura: Pasta de amendoim e cacau", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata no liquidificador as cenouras, ovos e óleo de coco.",
+                    "Em uma tigela, misture os ingredientes secos (farinhas, adoçante e fermento).",
+                    "Junte o líquido aos secos, misture bem e asse em formas individuais a 180°C por cerca de 30 minutos.",
+                    "Cubra com a pasta de amendoim e cacau diluídos em um pouco de água para dar ponto de calda."
+                ]
+            },
+            {
+                id: 7,
+                title: "Pudim de Chia com Leite Vegetal",
+                emoji: "🌱",
+                tags: ["sem-gluten", "low-carb", "frutas"],
+                ingredients: [
+                    { item: "Sementes de chia", qty: "1/2 xícara" },
+                    { item: "Leite de coco ou amêndoa", qty: "2 xícaras" },
+                    { item: "Mel ou adoçante natural", qty: "A gosto" },
+                    { item: "Essência de baunilha", qty: "1 colher de chá" },
+                    { item: "Topo: Frutas picadas", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes (exceto as frutas) em uma tigela ou jarra.",
+                    "Distribua em potinhos.",
+                    "Deixe refrigerar por, no mínimo, 6 horas ou durante a noite, para que a chia absorva o líquido e forme o pudim.",
+                    "Decore com as frutas picadas antes da venda."
+                ]
+            },
+            {
+                id: 8,
+                title: "Cookie Proteico de Aveia e Banana",
+                emoji: "🍪",
+                tags: ["proteico", "frutas", "chocolate"],
+                ingredients: [
+                    { item: "Banana madura amassada", qty: "1 unidade" },
+                    { item: "Farinha de aveia", qty: "1 xícara" },
+                    { item: "Whey Protein (qualquer sabor)", qty: "1 scoop" },
+                    { item: "Ovos", qty: "1 unidade" },
+                    { item: "Gotas de chocolate 70%", qty: "1/4 xícara" },
+                    { item: "Canela em pó", qty: "1 colher de chá" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes em uma tigela.",
+                    "Modele os cookies em assadeira forrada com papel manteiga.",
+                    "Asse em forno pré-aquecido a 180°C por 15 a 20 minutos.",
+                    "Deixe esfriar completamente antes de embalar."
+                ]
+            },
+            {
+                id: 9,
+                title: "Gelato de Abacate e Cacau",
+                emoji: "🥑",
+                tags: ["sem-gluten", "low-carb", "chocolate"],
+                ingredients: [
+                    { item: "Abacate congelado em cubos", qty: "1 xícara" },
+                    { item: "Cacau em pó 100%", qty: "3 colheres de sopa" },
+                    { item: "Leite vegetal (pouco)", qty: "50 ml" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Triture o abacate congelado em um processador potente.",
+                    "Adicione o cacau em pó, o adoçante e o leite vegetal (aos poucos) e bata até obter a consistência cremosa de gelato.",
+                    "Transfira para potinhos e leve ao freezer para manter a consistência."
+                ]
+            },
+            {
+                id: 10,
+                title: "Torta de Maçã e Canela sem Glúten",
+                emoji: "🍏",
+                tags: ["sem-gluten", "frutas"],
+                ingredients: [
+                    { item: "Massa: Farinha de arroz e ovo", qty: "A gosto" },
+                    { item: "Recheio: Maçãs picadas, canela", qty: "A gosto" },
+                    { item: "Adoçante, limão", qty: "A gosto" }
+                ],
+                prep: [
+                    "Massa: Misture a farinha de arroz, um ovo e um pouco de adoçante até dar ponto de massa. Forre pequenas formas.",
+                    "Recheio: Cozinhe as maçãs picadas com canela, limão e adoçante até ficarem macias.",
+                    "Recheie a massa e cubra com a massa em formato de tiras.",
+                    "Asse a 180°C até dourar."
+                ]
+            },
+            {
+                id: 11,
+                title: "Pão de Mel Fit Recheado",
+                emoji: "🍯",
+                tags: ["outros", "castanhas"],
+                ingredients: [
+                    { item: "Farinha de aveia", qty: "1 xícara" },
+                    { item: "Leite vegetal", qty: "1/2 xícara" },
+                    { item: "Mel ou adoçante líquido", qty: "1/4 xícara" },
+                    { item: "Ovos", qty: "2 unidades" },
+                    { item: "Especiarias (canela, cravo)", qty: "A gosto" },
+                    { item: "Bicarbonato de sódio", qty: "1 colher de chá" },
+                    { item: "Recheio: Doce de leite zero ou pasta de amendoim", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture os ingredientes líquidos (ovos, leite, mel/adoçante).",
+                    "Adicione os secos (aveia, especiarias, bicarbonato) e misture.",
+                    "Asse em forminhas de pão de mel a 180°C por 15 minutos.",
+                    "Depois de frio, corte ao meio e recheie. Banhe com chocolate 70% opcionalmente."
+                ]
+            },
+            {
+                id: 12,
+                title: "Trufa Funcional de Coco e Castanhas",
+                emoji: "🥥",
+                tags: ["sem-gluten", "low-carb", "castanhas"],
+                ingredients: [
+                    { item: "Coco ralado seco sem açúcar", qty: "1 xícara" },
+                    { item: "Leite em pó desnatado", qty: "1/2 xícara" },
+                    { item: "Castanhas trituradas (amendoim, caju...)", qty: "1/4 xícara" },
+                    { item: "Água (para dar liga)", qty: "A gosto" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture o coco, leite em pó e castanhas.",
+                    "Adicione o adoçante e a água aos poucos, amassando até formar uma massa modelável.",
+                    "Enrole em bolinhas e passe no coco ralado. Mantenha refrigerado."
+                ]
+            },
+            {
+                id: 13,
+                title: "Taça de Iogurte Grego e Granola Caseira",
+                emoji: "🥣",
+                tags: ["sem-gluten", "frutas"],
+                ingredients: [
+                    { item: "Iogurte natural desnatado (coado)", qty: "150g" },
+                    { item: "Granola caseira fit (sem açúcar)", qty: "A gosto" },
+                    { item: "Mel ou adoçante líquido", qty: "A gosto" },
+                    { item: "Fruta: Morangos ou mirtilos picados", qty: "A gosto" }
+                ],
+                prep: [
+                    "Em uma taça ou pote, monte camadas: Iogurte, Mel/Adoçante, Frutas e Granola.",
+                    "Repita as camadas.",
+                    "Sirva imediatamente ou refrigere por pouco tempo para manter a crocância da granola."
+                ]
+            },
+            {
+                id: 14,
+                title: "Bolo Vulcão de Chocolate Fit (Pequeno)",
+                emoji: "🌋",
+                tags: ["chocolate"],
+                ingredients: [
+                    { item: "Farinha de aveia", qty: "1 xícara" },
+                    { item: "Ovos", qty: "3 unidades" },
+                    { item: "Leite vegetal", qty: "1/2 xícara" },
+                    { item: "Cacau em pó 100%", qty: "3 colheres de sopa" },
+                    { item: "Adoçante culinário", qty: "1/2 xícara" },
+                    { item: "Fermento em pó", qty: "1 colher de sopa" },
+                    { item: "Calda: Chocolate 70% e creme de leite light", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes da massa, deixando o fermento por último.",
+                    "Despeje em mini formas de bolo vulcão untadas.",
+                    "Asse a 180°C por cerca de 20 minutos.",
+                    "Desenforme e cubra generosamente com a calda de chocolate."
+                ]
+            },
+            {
+                id: 15,
+                title: "Doce de Leite Zero Açúcar",
+                emoji: "🍮",
+                tags: ["sem-gluten", "low-carb", "outros"],
+                ingredients: [
+                    { item: "Leite em pó integral (ou desnatado)", qty: "1 xícara" },
+                    { item: "Água fervente", qty: "1/2 xícara" },
+                    { item: "Adoçante natural (xilitol/eritritol)", qty: "1/4 xícara" },
+                    { item: "Bicarbonato de sódio", qty: "1/2 colher de chá" },
+                    { item: "Essência de baunilha", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata todos os ingredientes no liquidificador.",
+                    "Transfira para uma panela e cozinhe em fogo baixo, mexendo sempre, até reduzir e engrossar (cerca de 15 a 20 minutos).",
+                    "Deixe esfriar para que a consistência fique mais firme. Venda em potinhos."
+                ]
+            },
+            {
+                id: 16,
+                title: "Cupcake de Chocolate e Beterraba Fit",
+                emoji: "🧁",
+                tags: ["chocolate"],
+                ingredients: [
+                    { item: "Beterraba cozida e amassada", qty: "1/2 xícara" },
+                    { item: "Ovos", qty: "2 unidades" },
+                    { item: "Farinha de aveia", qty: "1 xícara" },
+                    { item: "Cacau em pó 100%", qty: "3 colheres de sopa" },
+                    { item: "Óleo de coco", qty: "1/4 xícara" },
+                    { item: "Adoçante culinário", qty: "1/2 xícara" },
+                    { item: "Fermento em pó", qty: "1 colher de sopa" }
+                ],
+                prep: [
+                    "Bata a beterraba, ovos e óleo no liquidificador.",
+                    "Em uma tigela, misture os secos (aveia, cacau, adoçante).",
+                    "Junte as duas misturas e adicione o fermento.",
+                    "Asse em forminhas de cupcake a 180°C por 20 minutos."
+                ]
+            },
+            {
+                id: 17,
+                title: "Banoffee no Copo Low Carb",
+                emoji: "🍌",
+                tags: ["low-carb", "sem-gluten", "frutas", "castanhas"],
+                ingredients: [
+                    { item: "Base: Farinha de amêndoas, ghee, adoçante", qty: "A gosto" },
+                    { item: "Recheio: Doce de leite zero (Receita 15)", qty: "A gosto" },
+                    { item: "Camada: Banana ou purê de abóbora", qty: "A gosto" },
+                    { item: "Cobertura: Chantilly de creme de leite fresco", qty: "A gosto" }
+                ],
+                prep: [
+                    "Monte as camadas em potes: Base (farofa low carb), Doce de Leite Zero, fatias de banana/purê de abóbora.",
+                    "Finalize com chantilly de creme de leite fresco (batido com adoçante)."
+                ]
+            },
+            {
+                id: 18,
+                title: "Barrinha de Cereal Caseira com Sementes",
+                emoji: "📊",
+                tags: ["castanhas"],
+                ingredients: [
+                    { item: "Flocos de aveia", qty: "1 xícara" },
+                    { item: "Sementes (chia, linhaça, girassol)", qty: "1/2 xícara" },
+                    { item: "Pasta de amendoim integral", qty: "1/4 xícara" },
+                    { item: "Mel ou adoçante líquido", qty: "1/4 xícara" },
+                    { item: "Frutas secas picadas (opcional)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes em uma tigela.",
+                    "Pressione a massa firmemente em uma forma pequena.",
+                    "Leve à geladeira por 2 horas ou ao forno por 15 minutos (para barrinhas mais secas).",
+                    "Corte em barras padronizadas para venda."
+                ]
+            },
+            {
+                id: 19,
+                title: "Muffin de Amendoim e Cacau",
+                emoji: "🥜",
+                tags: ["sem-gluten", "low-carb", "chocolate", "castanhas"],
+                ingredients: [
+                    { item: "Farinha de amendoim", qty: "1 xícara" },
+                    { item: "Ovos", qty: "2 unidades" },
+                    { item: "Leite vegetal", qty: "1/2 xícara" },
+                    { item: "Cacau em pó", qty: "2 colheres de sopa" },
+                    { item: "Adoçante culinário", qty: "A gosto" },
+                    { item: "Fermento em pó", qty: "1 colher de sopa" },
+                    { item: "Pasta de amendoim (recheio)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes da massa.",
+                    "Despeje nas forminhas de muffin.",
+                    "Coloque uma colher de pasta de amendoim no centro de cada muffin (afundando um pouco).",
+                    "Asse a 180°C por 18 a 20 minutos."
+                ]
+            },
+            {
+                id: 20,
+                title: "Romeu e Julieta Fit no Potinho",
+                emoji: "❤️",
+                tags: ["sem-gluten", "low-carb", "frutas"],
+                ingredients: [
+                    { item: "Cream cheese light", qty: "150g" },
+                    { item: "Iogurte natural desnatado", qty: "100g" },
+                    { item: "Adoçante natural", qty: "A gosto" },
+                    { item: "Goiabada cascão zero açúcar", qty: "100g" },
+                    { item: "Água (para diluir)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture o cream cheese, o iogurte e o adoçante até obter um creme homogêneo.",
+                    "Distribua o creme nos potinhos.",
+                    "Derreta a goiabada zero com um pouco de água no micro-ondas ou fogo baixo até formar uma calda. Deixe esfriar.",
+                    "Cubra o creme com a goiabada.",
+                    "Leve à geladeira."
+                ]
+            },
+            // NOVAS RECEITAS ADICIONADAS (21-25)
+            {
+                id: 21,
+                title: "Pavê de Coco Light",
+                emoji: "🥥",
+                tags: ["low-carb", "sem-gluten"],
+                ingredients: [
+                    { item: "Leite de coco integral", qty: "200 ml" },
+                    { item: "Coco ralado sem açúcar", qty: "1/2 xícara" },
+                    { item: "Creme de leite light", qty: "1/2 xícara" },
+                    { item: "Gelatina incolor sem sabor", qty: "1 pacote" },
+                    { item: "Adoçante natural", qty: "A gosto" },
+                    { item: "Base: Biscoito maizena integral ou farelo de castanha", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture o leite de coco, coco ralado, creme de leite e adoçante e leve ao fogo baixo até aquecer (não ferver).",
+                    "Adicione a gelatina hidratada e mexa bem até dissolver.",
+                    "Em potes, faça camadas: base de biscoito/farelo e o creme de coco.",
+                    "Leve à geladeira por 3 horas ou até firmar. Decore com coco ralado."
+                ]
+            },
+            {
+                id: 22,
+                title: "Mini Bolo de Pote de Chocolate e Morango Fit",
+                emoji: "🍰",
+                tags: ["chocolate", "frutas"],
+                ingredients: [
+                    { item: "Massa: Farinha de aveia, cacau, ovos, leite vegetal", qty: "A gosto" },
+                    { item: "Adoçante culinário", qty: "A gosto" },
+                    { item: "Recheio: Iogurte natural, whey protein chocolate, adoçante", qty: "A gosto" },
+                    { item: "Morangos fatiados", qty: "A gosto" },
+                    { item: "Calda: Leite vegetal e cacau", qty: "A gosto" }
+                ],
+                prep: [
+                    "Prepare a massa do bolo (misture secos, líquidos, e asse em forma fina). Esfarele ou corte em pedaços pequenos.",
+                    "Prepare o recheio (misturando iogurte e whey).",
+                    "Monte em camadas nos potes: Bolo, calda, recheio, morangos. Repita as camadas.",
+                    "Refrigere por 1 hora antes de vender."
+                ]
+            },
+            {
+                id: 23,
+                title: "Donut Assado de Maçã e Canela",
+                emoji: "🍩",
+                tags: ["frutas", "outros"],
+                ingredients: [
+                    { item: "Maçã ralada fina", qty: "1/2 xícara" },
+                    { item: "Farinha de aveia", qty: "1 xícara" },
+                    { item: "Ovo", qty: "1 unidade" },
+                    { item: "Leite vegetal", qty: "1/4 xícara" },
+                    { item: "Canela em pó", qty: "1 colher de chá" },
+                    { item: "Adoçante culinário", qty: "A gosto" },
+                    { item: "Fermento em pó", qty: "1 colher de chá" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes até formar uma massa homogênea.",
+                    "Transfira a massa para formas de donut (assadas).",
+                    "Asse em forno pré-aquecido a 180°C por 12 a 15 minutos.",
+                    "Decore com um glacê feito com leite vegetal e adoçante em pó (opcional)."
+                ]
+            },
+            {
+                id: 24,
+                title: "Sorvete de Manga Caseiro (sem açúcar)",
+                emoji: "🥭",
+                tags: ["frutas", "sem-gluten"],
+                ingredients: [
+                    { item: "Manga madura e picada (congelada)", qty: "2 xícaras" },
+                    { item: "Iogurte natural desnatado (ou iogurte grego)", qty: "100g" },
+                    { item: "Gotas de limão", qty: "A gosto" },
+                    { item: "Adoçante natural (opcional)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata a manga congelada no processador ou liquidificador potente, parando e raspando as laterais, até obter uma consistência cremosa de sorbet.",
+                    "Adicione o iogurte, as gotas de limão e o adoçante (se usar) e bata rapidamente para incorporar.",
+                    "Sirva imediatamente como sorbet ou transfira para potinhos e leve ao freezer para a consistência de sorvete de massa."
+                ]
+            },
+            {
+                id: 25,
+                title: "Barrinha de Castanha e Mel",
+                emoji: "🌰",
+                tags: ["castanhas", "proteico", "sem-gluten"],
+                ingredients: [
+                    { item: "Mix de castanhas (caju, amêndoa, amendoim) picadas", qty: "1 xícara" },
+                    { item: "Sementes (chia, linhaça)", qty: "1/4 xícara" },
+                    { item: "Mel ou adoçante líquido", qty: "1/4 xícara" },
+                    { item: "Pasta de amendoim integral", qty: "2 colheres de sopa" },
+                    { item: "Whey Protein (baunilha/sem sabor)", qty: "1 scoop" }
+                ],
+                prep: [
+                    "Em uma panela, aqueça o mel/adoçante e a pasta de amendoim até derreter e formar um xarope.",
+                    "Em uma tigela, misture as castanhas, sementes e o whey protein.",
+                    "Despeje o xarope sobre os ingredientes secos e misture rapidamente até umedecer tudo.",
+                    "Pressione a massa firmemente em uma forma forrada.",
+                    "Leve à geladeira por 2 horas e corte em barras padronizadas."
+                ]
+            },
+            // NOVAS 25 RECEITAS ADICIONADAS (26-50)
+            {
+                id: 26,
+                title: "Torta de Amendoim Low Carb",
+                emoji: "🥧",
+                tags: ["low-carb", "sem-gluten", "castanhas"],
+                ingredients: [
+                    { item: "Base: Farinha de amendoim e manteiga ghee", qty: "A gosto" },
+                    { item: "Recheio: Pasta de amendoim, creme de leite e adoçante", qty: "A gosto" },
+                    { item: "Gelatina incolor", qty: "1 pacote" }
+                ],
+                prep: [
+                    "Prepare a base com farinha de amendoim e manteiga, forre as formas e leve ao freezer.",
+                    "Bata os ingredientes do recheio, adicione a gelatina dissolvida e despeje sobre a base.",
+                    "Refrigere por 4 horas."
+                ]
+            },
+            {
+                id: 27,
+                title: "Panqueca de Banana Proteica (Mini)",
+                emoji: "🥞",
+                tags: ["proteico", "frutas"],
+                ingredients: [
+                    { item: "Ovo", qty: "1 unidade" },
+                    { item: "Clara de ovo", qty: "2 unidades" },
+                    { item: "Banana amassada", qty: "1/2 unidade" },
+                    { item: "Whey Protein sabor baunilha", qty: "1/2 scoop" },
+                    { item: "Farinha de aveia", qty: "1 colher de sopa" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes até obter uma massa lisa.",
+                    "Aqueça uma frigideira antiaderente (untada com óleo de coco) e despeje porções pequenas da massa.",
+                    "Doure dos dois lados. Empilhe as mini panquecas para venda."
+                ]
+            },
+            {
+                id: 28,
+                title: "Sorvete de Morango com Whey",
+                emoji: "🍦",
+                tags: ["proteico", "frutas", "sem-gluten"],
+                ingredients: [
+                    { item: "Morango congelado", qty: "2 xícaras" },
+                    { item: "Whey Protein sabor morango/baunilha", qty: "1 scoop" },
+                    { item: "Leite vegetal (pouco)", qty: "50 ml" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata todos os ingredientes no processador até atingir a consistência cremosa de sorvete. Use o mínimo de líquido possível.",
+                    "Transfira para potinhos e mantenha no freezer."
+                ]
+            },
+            {
+                id: 29,
+                title: "Petit Gateau Fit",
+                emoji: "🌋",
+                tags: ["chocolate"],
+                ingredients: [
+                    { item: "Ovo", qty: "1 unidade" },
+                    { item: "Chocolate 70% derretido", qty: "50g" },
+                    { item: "Cacau em pó 100%", qty: "1 colher de sopa" },
+                    { item: "Farinha de arroz (ou amêndoa)", qty: "1 colher de sopa" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture o ovo, o adoçante e o chocolate derretido.",
+                    "Adicione o cacau e a farinha. Misture rapidamente.",
+                    "Asse em forminhas individuais untadas a 200°C por 8-10 minutos (o centro deve ficar mole)."
+                ]
+            },
+            {
+                id: 30,
+                title: "Geleia de Frutas Vermelhas Zero",
+                emoji: "🍇",
+                tags: ["frutas", "sem-gluten", "low-carb"],
+                ingredients: [
+                    { item: "Frutas vermelhas frescas ou congeladas", qty: "300g" },
+                    { item: "Água", qty: "1/4 xícara" },
+                    { item: "Sementes de chia", qty: "1 colher de sopa" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Cozinhe as frutas com água e adoçante até desmancharem.",
+                    "Retire do fogo e misture a chia. A chia irá engrossar a geleia naturalmente.",
+                    "Guarde em potes de vidro para uso como recheio ou cobertura."
+                ]
+            },
+            {
+                id: 31,
+                title: "Brownie de Abobrinha Fit (Sem glúten)",
+                emoji: "🟢",
+                tags: ["chocolate", "sem-gluten"],
+                ingredients: [
+                    { item: "Abobrinha ralada (sem casca, sem água)", qty: "1 xícara" },
+                    { item: "Ovos", qty: "2 unidades" },
+                    { item: "Farinha de amêndoa", qty: "1/2 xícara" },
+                    { item: "Cacau em pó 100%", qty: "1/2 xícara" },
+                    { item: "Óleo de coco", qty: "1/4 xícara" }
+                ],
+                prep: [
+                    "Misture líquidos (ovos, óleo de coco). Adicione a abobrinha ralada e os secos.",
+                    "Asse em forma untada a 180°C por 25 minutos. A abobrinha garante a umidade."
+                ]
+            },
+            {
+                id: 32,
+                title: "Muffin de Coco com Sementes",
+                emoji: "🧁",
+                tags: ["castanhas", "sem-gluten"],
+                ingredients: [
+                    { item: "Farinha de coco", qty: "1/2 xícara" },
+                    { item: "Ovos", qty: "3 unidades" },
+                    { item: "Leite de coco", qty: "1/4 xícara" },
+                    { item: "Sementes de girassol/abóbora", qty: "A gosto" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes. A farinha de coco absorve muito líquido.",
+                    "Distribua em forminhas de muffin.",
+                    "Asse a 180°C por 20 minutos."
+                ]
+            },
+            {
+                id: 33,
+                title: "Tiramisu Fit no Pote",
+                emoji: "☕",
+                tags: ["proteico", "outros"],
+                ingredients: [
+                    { item: "Creme: Iogurte grego, whey baunilha, café solúvel", qty: "A gosto" },
+                    { item: "Base: Biscoito de arroz (molhado no café)", qty: "A gosto" },
+                    { item: "Cacau em pó 100% (para polvilhar)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture os ingredientes do creme.",
+                    "Monte no pote em camadas: Biscoito de arroz umedecido em café, creme, polvilhe cacau.",
+                    "Refrigere por 2 horas."
+                ]
+            },
+            {
+                id: 34,
+                title: "Waffle Proteico de Claras",
+                emoji: "🧇",
+                tags: ["proteico", "outros"],
+                ingredients: [
+                    { item: "Clara de ovo", qty: "4 unidades" },
+                    { item: "Farinha de aveia", qty: "2 colheres de sopa" },
+                    { item: "Fermento em pó", qty: "1 colher de chá" },
+                    { item: "Adoçante", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata as claras em neve (opcional). Misture a farinha, fermento e adoçante.",
+                    "Misture as claras delicadamente.",
+                    "Asse na máquina de waffle (em porções pequenas para vender)."
+                ]
+            },
+            {
+                id: 35,
+                title: "Doce de Abóbora com Coco Low Carb",
+                emoji: "🎃",
+                tags: ["low-carb", "sem-gluten"],
+                ingredients: [
+                    { item: "Abóbora cozida e amassada", qty: "1 xícara" },
+                    { item: "Coco ralado sem açúcar", qty: "1/2 xícara" },
+                    { item: "Adoçante natural", qty: "A gosto" },
+                    { item: "Cravo e canela em pau", qty: "A gosto" }
+                ],
+                prep: [
+                    "Leve a abóbora, adoçante, coco e especiarias ao fogo baixo, mexendo até reduzir e obter a consistência de doce.",
+                    "Venda em potinhos. Perfeito para o público low carb."
+                ]
+            },
+            {
+                id: 36,
+                title: "Crumble de Pêra e Aveia",
+                emoji: "🍐",
+                tags: ["frutas", "outros"],
+                ingredients: [
+                    { item: "Recheio: Pêras picadas, canela e adoçante", qty: "A gosto" },
+                    { item: "Cobertura: Flocos de aveia, farinha integral, óleo de coco", qty: "A gosto" }
+                ],
+                prep: [
+                    "Cozinhe a pêra com canela e adoçante.",
+                    "Misture os ingredientes da cobertura até formar uma farofa.",
+                    "Monte em potinhos (pêra e farofa) e leve para assar a 180°C por 15 minutos, até dourar a farofa."
+                ]
+            },
+            {
+                id: 37,
+                title: "Barrinha de Gergelim e Mel",
+                emoji: "🌱",
+                tags: ["sem-gluten", "castanhas"],
+                ingredients: [
+                    { item: "Gergelim torrado", qty: "1/2 xícara" },
+                    { item: "Mix de castanhas trituradas", qty: "1/4 xícara" },
+                    { item: "Mel ou adoçante líquido", qty: "A gosto" }
+                ],
+                prep: [
+                    "Derreta o mel/adoçante e a pasta de amendoim (opcional) em fogo baixo.",
+                    "Misture o gergelim e as castanhas.",
+                    "Pressione em uma forma, deixe esfriar e corte em barras."
+                ]
+            },
+            {
+                id: 38,
+                title: "Cheesecake de Manga Low Carb",
+                emoji: "🥭",
+                tags: ["low-carb", "sem-gluten", "frutas"],
+                ingredients: [
+                    { item: "Base: Farinha de coco e óleo de coco", qty: "A gosto" },
+                    { item: "Recheio: Cream cheese light, iogurte, adoçante", qty: "A gosto" },
+                    { item: "Cobertura: Purê de manga (com gelatina)", qty: "A gosto" }
+                ],
+                prep: [
+                    "Prepare a base e refrigere.",
+                    "Misture o recheio de cream cheese.",
+                    "Faça a cobertura de manga com gelatina incolor para firmar.",
+                    "Monte e refrigere."
+                ]
+            },
+            {
+                id: 39,
+                title: "Bolo de Laranja Integral no Pote",
+                emoji: "🍊",
+                tags: ["outros"],
+                ingredients: [
+                    { item: "Farinha de trigo integral", qty: "1 xícara" },
+                    { item: "Ovos", qty: "3 unidades" },
+                    { item: "Suco de laranja natural", qty: "1/2 xícara" },
+                    { item: "Óleo de coco", qty: "1/4 xícara" },
+                    { item: "Raspas de laranja", qty: "A gosto" }
+                ],
+                prep: [
+                    "Bata os líquidos (ovos, suco, óleo).",
+                    "Misture os secos (farinha, fermento). Junte.",
+                    "Asse em forma fina. Depois de frio, monte o bolo em camadas no pote, umedecendo com suco de laranja."
+                ]
+            },
+            {
+                id: 40,
+                title: "Picolé de Iogurte e Limão",
+                emoji: "🧊",
+                tags: ["frutas", "proteico", "sem-gluten"],
+                ingredients: [
+                    { item: "Iogurte natural desnatado (ou grego)", qty: "1 xícara" },
+                    { item: "Suco de limão", qty: "A gosto" },
+                    { item: "Whey Protein (opcional)", qty: "1/2 scoop" },
+                    { item: "Adoçante natural", qty: "A gosto" }
+                ],
+                prep: [
+                    "Misture todos os ingredientes. Não precisa de cozimento.",
+                    "Despeje em forminhas de picolé.",
